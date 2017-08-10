@@ -7,17 +7,20 @@ import { Routes, RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { MainGridComponent } from './main-grid/main-grid.component';
+import { ConfigComponent } from './config/config.component';
 
 export const ROUTES: Routes = [
   { path: '', component: MainGridComponent },
-  { path: 'in', component: LoginComponent }
+  { path: 'in', component: LoginComponent },
+  { path: 'cfg', component: ConfigComponent }
 ];
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
-    MainGridComponent
+    MainGridComponent,
+    ConfigComponent
   ],
   imports: [
     BrowserModule,
