@@ -56,7 +56,8 @@ export class ConfigComponent implements OnInit {
   populateTagAgain(observer: Subscriber<Tag[]>) {
     this.tagsAreLoading = true
     setTimeout(() => {
-      observer.next(this.populateTags());
+      let tags = this.populateTags()
+      observer.next(tags);
       this.tagsAreLoading = false
     }, 3000);
   }
@@ -94,7 +95,19 @@ export class ConfigComponent implements OnInit {
   }
 
   populateTags(): Tag[] {
-    return []
+    let tags = DATASET.tags
+    let ret = new Array<Tag>()
+
+    for (var key in tags) {
+      if (tags.hasOwnProperty(key)) {
+        let tag = new Tag
+        tag.$key = key
+        tag.description = tags[key]
+        ret.push(tag)
+      }
+    }
+
+    return ret
   }
 
 }

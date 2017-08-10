@@ -60,10 +60,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngIf="! tagsAreLoading && ! tags?.length">
+            <tr *ngIf="! tagsAreLoading && ! (tags | async)?.length">
               <td colspan="2">Empty</td>
             </tr>
-            <tr *ngFor="let cat of tags | async">
+            <tr *ngFor="let tag of tags | async">
               <td>{{tag.$key}}</td>
               <td>{{tag.description}}</td>
             </tr>
