@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
+import { Subject } from 'rxjs/subject';
 
 @Component({
   selector: 'app-root',
@@ -7,26 +8,28 @@ import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+
   title = 'app';
-  closeResult: string;
 
-  constructor(private modalService: NgbModal) {}
+  //userName: Subject<string>
+  userName: string = null
 
-   open(content) {
-    this.modalService.open(content).result.then((result) => {
-      this.closeResult = `Closed with: ${result}`;
-    }, (reason) => {
-      this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
-    });
+  constructor(private router: Router) { }
+
+  isConnected() {
+    return this.userName != null
   }
 
-  private getDismissReason(reason: any): string {
-    if (reason === ModalDismissReasons.ESC) {
-      return 'by pressing ESC';
-    } else if (reason === ModalDismissReasons.BACKDROP_CLICK) {
-      return 'by clicking on a backdrop';
-    } else {
-      return  `with: ${reason}`;
-    }
+  login() {
+    console.log('login')
+    this.userName = "duh"
+    this.router.navigate(['/'])
   }
+
+  logoff() {
+    console.log('logoff')
+    this.userName = null
+    this.router.navigate(['/in'])
+  }
+
 }
