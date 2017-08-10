@@ -2,6 +2,7 @@ import { DATASET } from './../dataset.module';
 import { Component, OnInit } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
+import { Subscriber } from 'rxjs/Subscriber';
 
 @Component({
   selector: 'app-config',
@@ -17,6 +18,9 @@ export class ConfigComponent implements OnInit {
 
   accounts: Observable<Account[]>
   accountsAreLoading = true
+
+  tags: Observable<Tag[]>
+  tagsAreLoading = true
 
   ngOnInit() {
     this.categoriesAreLoading = true
@@ -34,6 +38,27 @@ export class ConfigComponent implements OnInit {
         this.accountsAreLoading = false
       }, 4000);
     })
+
+    this.tagsAreLoading = true
+    this.tags = new Observable(observer => {
+      setTimeout(() => {
+        observer.next([]);
+        this.tagsAreLoading = false
+
+        setTimeout(() => {
+          this.populateTagAgain(observer)
+        }, 3000);
+
+      }, 2000);
+    })
+  }
+
+  populateTagAgain(observer: Subscriber<Tag[]>) {
+    this.tagsAreLoading = true
+    setTimeout(() => {
+      observer.next(this.populateTags());
+      this.tagsAreLoading = false
+    }, 3000);
   }
 
   populateCategories(): Category[] {
@@ -68,6 +93,10 @@ export class ConfigComponent implements OnInit {
     return ret
   }
 
+  populateTags(): Tag[] {
+    return []
+  }
+
 }
 
 //FIXME exctract MODULES
@@ -78,6 +107,9 @@ export abstract class DataEntity {
 }
 
 export class Category extends DataEntity {
+}
+
+export class Tag extends DataEntity {
 }
 
 export enum AccountKind {
@@ -93,9 +125,9 @@ export class Account extends DataEntity {
   static fromJson(json: any): Account {
     let a = new Account()
 
-    a.description = json.description
-    a.dueDate = json.dueDate || null
     a.$key = json.$key
+    a.description = json.description
+    a.dueDate = json.dueDate
     a.kind = this.extractKind(json.kind)
 
     return a
@@ -109,7 +141,7 @@ export class Account extends DataEntity {
     throw new Error()
   }
 
-  kindDescription() : string {
+  kindDescription(): string {
     if (this.kind === AccountKind.CURRENT_ACCOUNT) return "current-account"
     if (this.kind === AccountKind.SAVING_ACCOUNT) return "saving-account"
     if (this.kind === AccountKind.CREDIT_CARD) return "credit-card"
