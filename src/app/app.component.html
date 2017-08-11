@@ -25,15 +25,15 @@
     </ul>
 
     <span class="navbar-text">
-      <a class="btn btn-primary btn-sm" (click)="logoff()">
-        {{ userName }}
+      <a class="btn btn-primary btn-sm" (click)="logoff()" role="button">
+        {{ getUserName() }}
       </a>
     </span>
   </div>
 
   <div class="collapse navbar-collapse" id="navbarSupportedContent" *ngIf="!isConnected()">
     <span class="navbar-text">
-      <a class="btn btn-primary btn-sm" (click)="login()">
+      <a class="btn btn-primary btn-sm" (click)="login()" role="button">
         Login
       </a>
     </span>
