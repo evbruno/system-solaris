@@ -3,6 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
 import { Subscriber } from 'rxjs/Subscriber';
+import 'rxjs/Rx';
+
+import { AngularFireDatabase, FirebaseListObservable } from 'angularfire2/database';
 
 @Component({
   selector: 'app-config',
@@ -10,8 +13,6 @@ import { Subscriber } from 'rxjs/Subscriber';
   styleUrls: ['./config.component.css']
 })
 export class ConfigComponent implements OnInit {
-
-  constructor() { }
 
   categories: Observable<Array<Category>>
   categoriesAreLoading = true
@@ -21,6 +22,34 @@ export class ConfigComponent implements OnInit {
 
   tags: Observable<Tag[]>
   tagsAreLoading = true
+
+  tagsFB: FirebaseListObservable<any[]>;
+  tagsSUB: Observable<Tag[]>
+
+  constructor(db: AngularFireDatabase) {
+    this.tagsFB = db.list('/v2/tags')
+
+    let pusher: any
+    this.tagsSUB = new Observable(obs => {
+      pusher = obs
+    })
+
+    this.tagsFB
+      .map(this.mapEachTag)
+      .subscribe((l: Array<Tag>) => {
+        console.log(l)
+        pusher.next(l)
+      })
+  }
+
+  mapEachTag(rawTags: Array<any>) {
+    return rawTags.map(raw => {
+        let tag = new Tag
+        tag.$key = raw.$key
+        tag.description = raw.$value
+        return tag
+    })
+  }
 
   ngOnInit() {
     this.categoriesAreLoading = true
