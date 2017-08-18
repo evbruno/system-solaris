@@ -25,6 +25,7 @@ export class ConfigComponent implements OnInit {
 
   tagsFB: FirebaseListObservable<any[]>;
   tagsSUB: Observable<Tag[]>
+  tagsFBErrorMsg: string
 
   constructor(db: AngularFireDatabase) {
     this.tagsFB = db.list('/v2/tags')
@@ -36,10 +37,17 @@ export class ConfigComponent implements OnInit {
 
     this.tagsFB
       .map(this.mapEachTag)
-      .subscribe((l: Array<Tag>) => {
-        console.log(l)
-        pusher.next(l)
-      })
+      .subscribe(
+        (list: Array<Tag>) => {
+          console.log(list)
+          pusher.next(list)
+          this.tagsFBErrorMsg = null
+        },
+        (err: any) => {
+          console.log(`Error accessing firebase : ${err}`)
+          this.tagsFBErrorMsg = err
+        }
+      )
   }
 
   mapEachTag(rawTags: Array<any>) {
