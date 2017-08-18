@@ -1,0 +1,38 @@
+<form #myForm="ngForm">
+
+  <div class="form-group row">
+    <label for="key" class="col-4 col-form-label">Key</label>
+    <input id="key" name="key"
+            [(ngModel)]="tagFormModel.key"
+            [readonly]="isEditingTagFormModel"
+            type="text"
+            class="form-control col-8"
+            minlength="2"
+            required />
+  </div>
+
+  <div class="form-group row">
+    <label for="description" class="col-4 col-form-label">Description</label>
+    <input id="description" name="description"
+            [(ngModel)]="tagFormModel.description"
+            [autofocus]="isEditingTagFormModel"
+            type="text"
+            class="form-control col-8"
+            minlength="2"
+            required />
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-sm" role="button"
+    [disabled]="!myForm.form.valid"
+    (click)="tagFormSubmitAction()">
+    <i class="fa fa-floppy-o" aria-hidden="true"></i>
+    Save
+  </button>
+
+  <button type="reset" class="btn btn-secondary btn-sm" role="button"
+    (click)="tagFormCancelAction()">
+    <i class="fa fa-ban" aria-hidden="true"></i>
+    Reset
+  </button>
+
+</form>

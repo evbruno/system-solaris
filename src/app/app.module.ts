@@ -1,3 +1,4 @@
+import { TagsModule } from './tags/tags.module';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -34,6 +35,7 @@ export const ROUTES: Routes = [
     ConfigComponent
   ],
   imports: [
+    TagsModule,
     BrowserModule,
     NgbModule.forRoot(),
     FormsModule,
