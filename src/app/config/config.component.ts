@@ -26,21 +26,76 @@ export class ConfigComponent implements OnInit {
   tagsFB: FirebaseListObservable<any[]>;
   tagsSUB: Observable<Tag[]>
   tagsFBErrorMsg: string
+  tagsFBSuccessMsg: string
 
-  constructor(db: AngularFireDatabase) {
+  tagFormModel: TagFormModel = new TagFormModel()
+  isEditingTagFormModel: boolean = false
+
+  tagFormSubmitAction() {
+    console.log(`tag form action : ${this.tagFormModel.key}`)
+    this.tagsFBSuccessMsg = null
+    this.tagsFBErrorMsg = null
+
+    const tags = this.db.list('/v2/tags')
+
+    tags.set(this.tagFormModel.key, this.tagFormModel.description)
+      .then(r => {
+        console.log(`saving ${r}`)
+        this.tagsFBSuccessMsg = 'Saved!'
+        this.isEditingTagFormModel = false
+        this.tagFormModel = new TagFormModel()
+      }).catch(e => {
+        console.log(`error ${e}`)
+        this.tagsFBErrorMsg = `error saving ${e}`
+      })
+  }
+
+  tagFormCancelAction() {
+    this.tagsFBSuccessMsg = null
+    this.tagsFBErrorMsg = null
+    this.tagFormModel = new TagFormModel()
+    this.isEditingTagFormModel = false
+  }
+
+  tagFormSelectRow(row) {
+    this.isEditingTagFormModel = true
+    console.log(`row selected: ${row}`)
+    this.tagFormModel = new TagFormModel(row.$key, row.$value)
+  }
+
+  tagFormDeleteRow(row) {
+    console.log(`row selected for deletion: ${row}`)
+    this.tagsFBSuccessMsg = null
+    this.tagsFBErrorMsg = null
+
+    const tags = this.db.list('/v2/tags')
+    tags.remove(row.$key)
+      .then(r => {
+        console.log(`removing ${r}`)
+        this.tagsFBSuccessMsg = 'Removed!'
+        this.isEditingTagFormModel = false
+      }).catch(e => {
+        console.log(`error ${e}`)
+        this.tagsFBErrorMsg = `error removing ${e}`
+      })
+  }
+
+  constructor(private db: AngularFireDatabase) {
     this.tagsFB = db.list('/v2/tags')
 
-    let pusher: any
-    this.tagsSUB = new Observable(obs => {
-      pusher = obs
-    })
+    // let pusher: any
+    // this.tagsSUB = new Observable(obs => {
+    //   pusher = obs
+    // })
+
+    this.tagsSUB = Observable.from([])
 
     this.tagsFB
-      .map(this.mapEachTag)
+      .map(this.mapTagList)
       .subscribe(
         (list: Array<Tag>) => {
           console.log(list)
-          pusher.next(list)
+          //pusher.next(list)
           this.tagsFBErrorMsg = null
         },
         (err: any) => {
@@ -48,9 +103,22 @@ export class ConfigComponent implements OnInit {
           this.tagsFBErrorMsg = err
         }
       )
+
+    this.tagsFB
+      .flatMap(this.mapp)
+      .subscribe(
+        (list:any) => {
+          console.log(list)
+        }
+      )
   }
 
-  mapEachTag(rawTags: Array<any>) {
+  mapp(x) {
+    console.log(x)
+    return x
+  }
+
+  mapTagList(rawTags: Array<any>) {
     return rawTags.map(raw => {
         let tag = new Tag
         tag.$key = raw.$key
@@ -147,6 +215,13 @@ export class ConfigComponent implements OnInit {
     return ret
   }
 
+}
+
+export class TagFormModel {
+  constructor(
+    public key?: string,
+    public description?: string
+  ){}
 }
 
 //FIXME exctract MODULES
