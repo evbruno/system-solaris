@@ -6,11 +6,11 @@
 export const environment = {
   production: false,
   firebase: {
-    apiKey: null,
-    authDomain: null,
-    databaseURL: null,
-    projectId: null,
-    storageBucket: null,
+    apiKey: "___FB_API_KEY___",
+    authDomain: "solaris-dev.firebaseapp.com",
+    databaseURL: "https://solaris-dev.firebaseio.com",
+    projectId: "solaris-dev",
+    storageBucket: "solaris-dev.appspot.com",
     messagingSenderId: null
   }
 };

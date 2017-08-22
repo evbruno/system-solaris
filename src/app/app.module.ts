@@ -13,12 +13,14 @@ import { MainGridComponent } from './main-grid/main-grid.component';
 import { ConfigComponent } from './config/config.component';
 
 import { LoginService } from './login.service';
+import { ServiceAPIStrategy, MemoryAPI, FirebaseAPI } from './service-api.service';
 
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireDatabaseModule } from 'angularfire2/database';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 
 import { environment } from '../environments/environment';
+import { TagsComponent } from './config/tags/tags.component';
 
 export const ROUTES: Routes = [
   { path: '', component: MainGridComponent },
@@ -31,7 +33,8 @@ export const ROUTES: Routes = [
     AppComponent,
     LoginComponent,
     MainGridComponent,
-    ConfigComponent
+    ConfigComponent,
+    TagsComponent
   ],
   imports: [
     BrowserModule,
@@ -46,7 +49,12 @@ export const ROUTES: Routes = [
             storageType: 'localStorage'
         })
   ],
-  providers: [LoginService],
+  providers: [
+    LoginService,
+    ServiceAPIStrategy,
+    MemoryAPI,
+    FirebaseAPI
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -1,11 +1,11 @@
-import { DATASET } from './../dataset.module';
+import { DATASET } from './../dataset-module';
 import { Component, OnInit } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
 import { Subscriber } from 'rxjs/Subscriber';
+import { Account, Category, Tag } from '../models';
+import { ServiceAPIStrategy } from '../service-api.service';
 import 'rxjs/Rx';
-
-import { AngularFireDatabase, FirebaseListObservable } from 'angularfire2/database';
 
 @Component({
   selector: 'app-config',
@@ -20,111 +20,8 @@ export class ConfigComponent implements OnInit {
   accounts: Observable<Account[]>
   accountsAreLoading = true
 
-  tags: Observable<Tag[]>
-  tagsAreLoading = true
+  constructor() {
 
-  tagsFB: FirebaseListObservable<any[]>;
-  tagsSUB: Observable<Tag[]>
-  tagsFBErrorMsg: string
-  tagsFBSuccessMsg: string
-
-  tagFormModel: TagFormModel = new TagFormModel()
-  isEditingTagFormModel: boolean = false
-
-  tagFormSubmitAction() {
-    console.log(`tag form action : ${this.tagFormModel.key}`)
-    this.tagsFBSuccessMsg = null
-    this.tagsFBErrorMsg = null
-
-    const tags = this.db.list('/v2/tags')
-
-    tags.set(this.tagFormModel.key, this.tagFormModel.description)
-      .then(r => {
-        console.log(`saving ${r}`)
-        this.tagsFBSuccessMsg = 'Saved!'
-        this.isEditingTagFormModel = false
-        this.tagFormModel = new TagFormModel()
-      }).catch(e => {
-        console.log(`error ${e}`)
-        this.tagsFBErrorMsg = `error saving ${e}`
-      })
-  }
-
-  tagFormCancelAction() {
-    this.tagsFBSuccessMsg = null
-    this.tagsFBErrorMsg = null
-    this.tagFormModel = new TagFormModel()
-    this.isEditingTagFormModel = false
-  }
-
-  tagFormSelectRow(row) {
-    this.isEditingTagFormModel = true
-    console.log(`row selected: ${row}`)
-    this.tagFormModel = new TagFormModel(row.$key, row.$value)
-  }
-
-  tagFormDeleteRow(row) {
-    console.log(`row selected for deletion: ${row}`)
-    this.tagsFBSuccessMsg = null
-    this.tagsFBErrorMsg = null
-
-    const tags = this.db.list('/v2/tags')
-    tags.remove(row.$key)
-      .then(r => {
-        console.log(`removing ${r}`)
-        this.tagsFBSuccessMsg = 'Removed!'
-        this.isEditingTagFormModel = false
-      }).catch(e => {
-        console.log(`error ${e}`)
-        this.tagsFBErrorMsg = `error removing ${e}`
-      })
-  }
-
-  constructor(private db: AngularFireDatabase) {
-    this.tagsFB = db.list('/v2/tags')
-
-    // let pusher: any
-    // this.tagsSUB = new Observable(obs => {
-    //   pusher = obs
-    // })
-
-    this.tagsSUB = Observable.from([])
-
-    this.tagsFB
-      .map(this.mapTagList)
-      .subscribe(
-        (list: Array<Tag>) => {
-          console.log(list)
-          //pusher.next(list)
-          this.tagsFBErrorMsg = null
-        },
-        (err: any) => {
-          console.log(`Error accessing firebase : ${err}`)
-          this.tagsFBErrorMsg = err
-        }
-      )
-
-    this.tagsFB
-      .flatMap(this.mapp)
-      .subscribe(
-        (list:any) => {
-          console.log(list)
-        }
-      )
-  }
-
-  mapp(x) {
-    console.log(x)
-    return x
-  }
-
-  mapTagList(rawTags: Array<any>) {
-    return rawTags.map(raw => {
-        let tag = new Tag
-        tag.$key = raw.$key
-        tag.description = raw.$value
-        return tag
-    })
   }
 
   ngOnInit() {
@@ -144,27 +41,6 @@ export class ConfigComponent implements OnInit {
       }, 4000);
     })
 
-    this.tagsAreLoading = true
-    this.tags = new Observable(observer => {
-      setTimeout(() => {
-        observer.next([]);
-        this.tagsAreLoading = false
-
-        setTimeout(() => {
-          this.populateTagAgain(observer)
-        }, 3000);
-
-      }, 2000);
-    })
-  }
-
-  populateTagAgain(observer: Subscriber<Tag[]>) {
-    this.tagsAreLoading = true
-    setTimeout(() => {
-      let tags = this.populateTags()
-      observer.next(tags);
-      this.tagsAreLoading = false
-    }, 3000);
   }
 
   populateCategories(): Category[] {
@@ -199,86 +75,4 @@ export class ConfigComponent implements OnInit {
     return ret
   }
 
-  populateTags(): Tag[] {
-    let tags = DATASET.tags
-    let ret = new Array<Tag>()
-
-    for (var key in tags) {
-      if (tags.hasOwnProperty(key)) {
-        let tag = new Tag
-        tag.$key = key
-        tag.description = tags[key]
-        ret.push(tag)
-      }
-    }
-
-    return ret
-  }
-
-}
-
-export class TagFormModel {
-  constructor(
-    public key?: string,
-    public description?: string
-  ){}
-}
-
-//FIXME exctract MODULES
-
-export abstract class DataEntity {
-  $key: string
-  description: string
-}
-
-export class Category extends DataEntity {
-}
-
-export class Tag extends DataEntity {
-}
-
-export enum AccountKind {
-  CREDIT_CARD,
-  CURRENT_ACCOUNT,
-  SAVING_ACCOUNT
-}
-
-export class Account extends DataEntity {
-  kind: AccountKind
-  dueDate?: Number // for CreditCards only
-
-  static fromJson(json: any): Account {
-    let a = new Account()
-
-    a.$key = json.$key
-    a.description = json.description
-    a.dueDate = json.dueDate
-    a.kind = this.extractKind(json.kind)
-
-    return a
-  }
-
-  static extractKind(kind: string): AccountKind {
-    if (kind == 'current-account') return AccountKind.CURRENT_ACCOUNT
-    if (kind == 'saving-account') return AccountKind.SAVING_ACCOUNT
-    if (kind == 'credit-card') return AccountKind.CREDIT_CARD
-
-    throw new Error()
-  }
-
-  kindDescription(): string {
-    if (this.kind === AccountKind.CURRENT_ACCOUNT) return "current-account"
-    if (this.kind === AccountKind.SAVING_ACCOUNT) return "saving-account"
-    if (this.kind === AccountKind.CREDIT_CARD) return "credit-card"
-
-    throw new Error()
-  }
-}
-
-export class Transaction extends DataEntity {
-  value: Number
-  dueDate?: Number
-  target: Account
-  selfRenew: boolean = false
-  credit: boolean = false
 }

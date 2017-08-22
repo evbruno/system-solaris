@@ -10,7 +10,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "postinstall": "ng build --aot -prod",
-    "heroku-prebuild" : "sed -i -- \"s|___FB_API_KEY___|$FB_API_KEY|g\" src/environments/environment.prod.ts"
+    "heroku-prebuild": "sed -i -- \"s|___FB_API_KEY___|$FB_API_KEY|g\" src/environments/environment.prod.ts"
   },
   "private": true,
   "dependencies": {
