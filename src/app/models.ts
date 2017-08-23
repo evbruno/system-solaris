@@ -1,14 +1,33 @@
 
-export abstract class DataEntity {
-  public $key: string
-  public description: string
+abstract class DataEntity {
+
+  $key: string
+  $value: any
+
+  constructor(raw?: any) {
+    if (raw != null) {
+      this.$key = raw.$key
+      this.$value = raw.$value
+    }
+  }
 }
 
-export class Category extends DataEntity {
+abstract class DescriptionEntity extends DataEntity {
+
+  description: string
+
+  constructor(raw?: any) {
+    super(raw)
+    this.description = this.$value
+  }
 
 }
 
-export class Tag extends DataEntity {
+export class Category extends DescriptionEntity {
+
+}
+
+export class Tag extends DescriptionEntity {
 
 }
 
@@ -19,8 +38,9 @@ export enum AccountKind {
 }
 
 export class Account extends DataEntity {
-  public kind: AccountKind
-  public dueDate?: Number // for CreditCards only
+  kind: AccountKind
+  dueDate?: Number // for CreditCards only
+  description: string
 
   static fromJson(json: any): Account {
     let a = new Account()

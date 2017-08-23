@@ -19,43 +19,16 @@ export class TagsComponent implements OnInit {
 
   tags: Observable<Tag[]>
   tagsAreLoading = false
+  isFormSubmiting = false
+
+  updateAt: Date
 
   constructor(private api: ServiceAPIStrategy) {
     this.tags = this.api.impl().allTags()
-
-    setTimeout(() => {
-      this.api.impl().save('xxx', 'yyy')
-    }, 6000)
-
-    this.tags.subscribe(_ => {
+    this.tags.subscribe(_x => {
       this.tagsAreLoading = false
+      this.updateAt = new Date()
     })
-
-    // private db: AngularFireDatabase
-
-    // this.tagsFB = db.list('/v2/tags')
-
-    //     this.tagsFB
-    //       .map(this.mapTagList)
-    //       .subscribe(
-    //         (list: Array<Tag>) => {
-    //           console.log(list)
-    //           //pusher.next(list)
-    //           this.tagsFBErrorMsg = null
-    //         },
-    //         (err: any) => {
-    //           console.log(`Error accessing firebase : ${err}`)
-    //           this.tagsFBErrorMsg = err
-    //         }
-    //       )
-
-    //     this.tagsFB
-    //       .flatMap(this.mapp)
-    //       .subscribe(
-    //         (list:any) => {
-    //           console.log(list)
-    //         }
-    //       )
   }
 
   ngOnInit() {
@@ -66,22 +39,27 @@ export class TagsComponent implements OnInit {
   isEditingTagFormModel: boolean = false
 
   tagFormSubmitAction() {
-    console.log(`tag form action : ${this.tagFormModel.key}`)
+    console.log(`tag form action : ${this.tagFormModel}`)
     this.successMsg = null
     this.errorMsg = null
+    this.isFormSubmiting = true
 
-    // const tags = this.db.list('/v2/tags')
+    let tag = new Tag()
+    tag.$key = this.tagFormModel.key
+    tag.description = this.tagFormModel.description
 
-    // tags.set(this.tagFormModel.key, this.tagFormModel.description)
-    //   .then(r => {
-    //     console.log(`saving ${r}`)
-    //     this.tagsFBSuccessMsg = 'Saved!'
-    //     this.isEditingTagFormModel = false
-    //     this.tagFormModel = new TagFormModel()
-    //   }).catch(e => {
-    //     console.log(`error ${e}`)
-    //     this.tagsFBErrorMsg = `error saving ${e}`
-    //   })
+    this.api.impl().save(tag)
+      .then(r => {
+        console.log(`saving ${r}`)
+        this.successMsg = 'Saved!'
+        this.isEditingTagFormModel = false
+        this.isFormSubmiting = false
+        this.tagFormModel = new TagFormModel()
+      }).catch(e => {
+        console.log(`error ${e}`)
+        this.errorMsg = `error saving ${e}`
+        this.isFormSubmiting = false
+      })
   }
 
   tagFormCancelAction() {
@@ -94,25 +72,26 @@ export class TagsComponent implements OnInit {
   tagFormSelectRow(row: Tag) {
     this.isEditingTagFormModel = true
     console.log(`row selected: ${row}`)
-    this.tagFormModel = new TagFormModel(row.$key, row.description)
+    this.tagFormModel = new TagFormModel(row.$key, row.description as string)
   }
 
   tagFormDeleteRow(row: Tag) {
     console.log(`row selected for deletion: ${row}`)
     this.successMsg = null
     this.errorMsg = null
+    this.isFormSubmiting = true
 
-  //   const tags = this.db.list('/v2/tags')
-  //   tags.remove(row.$key)
-  //     .then(r => {
-  //       console.log(`removing ${r}`)
-  //       this.tagsFBSuccessMsg = 'Removed!'
-  //       this.isEditingTagFormModel = false
-  //     }).catch(e => {
-  //       console.log(`error ${e}`)
-  //       this.tagsFBErrorMsg = `error removing ${e}`
-  //     })
-  // }
+    this.api.impl().remove(row)
+      .then(r => {
+        console.log(`removing ${r}`)
+        this.successMsg = 'Removed!'
+        this.isEditingTagFormModel = false
+        this.isFormSubmiting = false
+      }).catch(e => {
+        console.log(`error ${e}`)
+        this.errorMsg = `error removing ${e}`
+        this.isFormSubmiting = false
+      })
   }
 }
 

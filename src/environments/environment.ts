@@ -6,7 +6,7 @@
 export const environment = {
   production: false,
   firebase: {
-    apiKey: "___FB_API_KEY___",
+    apiKey: "AIzaSyArDq6YXC7ADyysVLoj4TLgDj6stCCMye8",
     authDomain: "solaris-dev.firebaseapp.com",
     databaseURL: "https://solaris-dev.firebaseio.com",
     projectId: "solaris-dev",

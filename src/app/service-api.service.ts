@@ -1,3 +1,4 @@
+import { Subject } from 'rxjs/Subject';
 import { Injectable } from '@angular/core';
 import { Account, Category, Tag } from './models';
 import { Observable } from 'rxjs/Observable';
@@ -8,8 +9,8 @@ import { Promise, Promise_Instance, Thenable } from 'firebase';
 export interface ServiceAPI {
 
   allTags(): Observable<Array<Tag>>
-  //remove(tag: Tag): Promise_Instance<Tag>
-  save(key: string, description: string): Thenable<void>
+  remove(tag: Tag): firebase.Promise<void>
+  save(tag: Tag): firebase.Promise<void>
 
 }
 
@@ -18,19 +19,21 @@ export interface ServiceAPI {
 @Injectable()
 export class MemoryAPI implements ServiceAPI {
 
-  private tags = new Array<Tag>()
+  private tagsCache : Array<Tag>
+  private tags : Subject<Array<Tag>>
 
   constructor() {
-    this.tags = this.extractTags()
+    this.tagsCache = this.extractTags()
+    this.tags =  new Subject<Array<Tag>>()
   }
 
 
   allTags(): Observable<Array<Tag>> {
-    return new Observable(observer => {
-      setTimeout(() => {
-        observer.next(this.tags)
-      }, 3000);
-    })
+    setTimeout(() => {
+      this.tags.next(this.tagsCache)
+    }, 3000)
+
+    return this.tags
   }
 
   private extractTags() : Array<Tag> {
@@ -49,14 +52,39 @@ export class MemoryAPI implements ServiceAPI {
       return ret
   }
 
-  save(key: string, description: string): Thenable<void> {
-    let tag = new Tag
-    tag.$key = key
-    tag.description = description
-    this.tags.push(tag)
-    return Promise.resolve(null)
+  save(tag: Tag): firebase.Promise<void> {
+
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+
+        // fake error
+        if (tag.$key == 'kill')
+          reject(new Error('Crussh! Kill! Destroy !'))
+        else {
+          // always push... I dont care !
+          this.tagsCache.push(tag)
+          this.tags.next(this.tagsCache)
+          resolve(null)
+        }
+
+      }, 5000)
+    })
   }
 
+  remove(tag: Tag): firebase.Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        let idx = this.tagsCache.indexOf(tag)
+        if (idx >= 0)
+          this.tagsCache.splice(idx, 1)
+
+        this.tags.next(this.tagsCache)
+
+        resolve
+      }, 3000)
+    })
+
+  }
 }
 
 //// Firebase
@@ -72,15 +100,16 @@ export class FirebaseAPI implements ServiceAPI {
 
   private mapTagList(rawTags: Array<any>): Array<Tag> {
     return rawTags.map(raw => {
-        let tag = new Tag
-        tag.$key = raw.$key
-        tag.description = raw.$value
-        return tag
+      return new Tag(raw)
     })
   }
 
-  save(key: string, description: string): Thenable<void> {
-    return Promise.resolve(null)
+  save(tag: Tag): firebase.Promise<void> {
+    return this.db.list('/v2/tags').set(tag.$key, tag.description)
+  }
+
+  remove(tag: Tag): firebase.Promise<void> {
+    return this.db.list('/v2/tags').remove(tag.$key)
   }
 
 }
@@ -94,6 +123,6 @@ export class ServiceAPIStrategy {
   ){}
 
   impl(): ServiceAPI {
-    return this.fb
+    return this.mem
   }
 }
